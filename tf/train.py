@@ -28,10 +28,8 @@ from chunkparser import ChunkParser
 
 SKIP = 32
 
-
 def get_chunks(data_prefix):
     return glob.glob(data_prefix + "*.gz")
-
 
 def get_all_chunks(path):
     if isinstance(path, list):
@@ -45,7 +43,6 @@ def get_all_chunks(path):
         chunks += get_chunks(d)
     print("got", len(chunks), "chunks for", path)
     return chunks
-
 
 def get_latest_chunks(path, num_chunks, allow_less, sort_key_fn):
     chunks = get_all_chunks(path)
@@ -73,16 +70,13 @@ def get_latest_chunks(path, num_chunks, allow_less, sort_key_fn):
     random.shuffle(chunks)
     return chunks
 
-
 def identity_function(name):
     return name
-
 
 def game_number_for_name(name):
     num_str = os.path.basename(name).upper().strip(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ_-.")
     return int(num_str)
-
 
 def get_input_mode(cfg):
     import proto.net_pb2 as pb
@@ -104,7 +98,6 @@ def get_input_mode(cfg):
         return pb.NetworkFormat.INPUT_112_WITH_CANONICALIZATION_V2_ARMAGEDDON
     else:
         raise ValueError("Unknown input mode format: {}".format(input_mode))
-
 
 def main(cmd):
     cfg = yaml.safe_load(cmd.cfg.read())
@@ -188,19 +181,18 @@ def main(cmd):
     tfprocess = TFProcess(cfg)
     train_dataset = tf.data.Dataset.from_generator(
         train_parser.parse,
-        output_types=(tf.string, tf.string, tf.string, tf.string, tf.string))
+        output_types=(tf.string, tf.string))
     train_dataset = train_dataset.map(parse_function)
     test_dataset = tf.data.Dataset.from_generator(
         test_parser.parse,
-        output_types=(tf.string, tf.string, tf.string, tf.string, tf.string))
+        output_types=(tf.string, tf.string))
     test_dataset = test_dataset.map(parse_function)
 
     validation_dataset = None
     if 'input_validation' in cfg['dataset']:
         validation_dataset = tf.data.Dataset.from_generator(
             validation_parser.sequential,
-            output_types=(tf.string, tf.string, tf.string, tf.string,
-                          tf.string))
+            output_types=(tf.string, tf.string))
         validation_dataset = validation_dataset.map(parse_function)
 
     if tfprocess.strategy is None:  #Mirrored strategy appends prefetch itself with a value depending on number of replicas
