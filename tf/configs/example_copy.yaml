@@ -1,0 +1,38 @@
+%YAML 1.2
+---
+name: 'd010-64x6'                       # ideally no spaces
+gpu: 0                                 # gpu id to process on
+
+dataset: 
+  num_chunks: 2                   # newest nof chunks to parse
+  train_ratio: 0.7                    # trainingset ratio
+  input_train: '/media/chess/repos/Eloquent/lczero-training/data2/train/'
+  input_test: '/media/chess/repos/Eloquent/lczero-training/data2/test/'
+
+training:
+    precision: 'single'
+    batch_size: 256                   # training batch
+    test_steps: 10000                   # eval test set values after this many steps
+    train_avg_report_steps: 1000        # training reports its average values after this many steps.
+    total_steps: 400000                # terminate after these steps
+    warmup_steps: 500                  # if global step is less than this, scale the current LR by ratio of global step to this value
+    # checkpoint_steps: 10000          # optional frequency for checkpointing before finish
+    shuffle_size: 524288               # size of the shuffle buffer
+    lr_values:
+        - 0.1
+        - 0.01
+        - 0.001
+        - 0.0001
+    lr_boundaries:
+        - 150000
+        - 250000
+        - 350000
+    policy_loss_weight: 1.0            # weight of policy loss
+    path: '/media/chess/repos/Eloquent/lczero-training/networks'    # network storage dir
+
+model:
+  filters: 64
+  residual_blocks: 6
+  se_ratio: 8                          # Squeeze Excite structural network architecture.
+  policy: 'convolution'                  # attention policy fields:
+...
