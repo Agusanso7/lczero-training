@@ -1,4 +1,8 @@
-numpy==1.13.3
-tensorflow==2.5.1
-tensorflow-tensorboard==0.4.0rc2
-protobuf==3.12.1
+numpy==1.24.3
+tensorflow==2.9.0
+tensorflow-tensorboard==1.5.1
+protobuf==3.20.3
+PyYAML==6.0
+keras==2.9.0
+Keras-Preprocessing==1.1.2
+keras-cv==0.2.5
