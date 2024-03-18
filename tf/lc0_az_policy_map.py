@@ -64,76 +64,52 @@ def knight_move(start, direction, steps):
         return None
     return index_to_position(i)
 
+def is_even_possible(from_square: int, to_square: int): # 1792 total possible moves
+    # Checks if the move from the from_square to the to_square is even possible given any piece
+    from_rank, from_file = divmod(from_square, 8)
+    to_rank, to_file = divmod(to_square, 8)
+    
+    # Check if the squares are the same
+    if from_square == to_square:
+        return False
+    
+    # Check if the move is horizontal or vertical
+    if from_rank == to_rank or from_file == to_file:
+        return True
+    
+    # Check if the move is diagonal
+    if abs(from_rank - to_rank) == abs(from_file - to_file):
+        return True
+    
+    # Check if the move is a knight move
+    if abs(from_rank - to_rank) == 2 and abs(from_file - to_file) == 1:
+        return True
+    if abs(from_rank - to_rank) == 1 and abs(from_file - to_file) == 2:
+        return True
+    
+    return False
 
-def make_map(kind='matrix'):
-    # 56 planes of queen moves
-    moves = []
-    for direction in ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']:
-        for steps in range(1, 8):
-            for r0 in rows:
-                for c0 in columns:
-                    start = c0 + r0
-                    end = queen_move(start, direction, steps)
-                    if end == None:
-                        moves.append('illegal')
-                    else:
-                        moves.append(start + end)
+def get_possible_moves_array_mapping():
+    last_index = 0
+    array_board = [-1] * 64*64
+    for _from in range(64):
+        for _to in range(64):
+            if is_even_possible(_from, _to):
+                array_board[64*_from+_to] = last_index
+                last_index += 1
+    return array_board
+MOVE_TO_COMPRESSED_MOVE = get_possible_moves_array_mapping()
 
-    # 8 planes of knight moves
-    for direction in ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']:
-        for r0 in rows:
-            for c0 in columns:
-                start = c0 + r0
-                end = knight_move(start, direction, 1)
-                if end == None:
-                    moves.append('illegal')
-                else:
-                    moves.append(start + end)
+def make_map():
+    az_to_lc0 = np.zeros((64 * 8 * 8, 1792), dtype=np.float32)
+    # conv-position to 1792-vector
+    for _from in range(64):
+        for _to in range(64):
+            if is_even_possible(_from, _to):
+                i = MOVE_TO_COMPRESSED_MOVE[_from*64+_to]
+                az_to_lc0[_from*64+_to][i] = 1
+    return az_to_lc0
 
-    # 9 promotions
-    for direction in ['NW', 'N', 'NE']:
-        for promotion in promotions:
-            for r0 in rows:
-                for c0 in columns:
-                    # Promotion only in the second last rank
-                    if r0 != '7':
-                        moves.append('illegal')
-                        continue
-                    start = c0 + r0
-                    end = queen_move(start, direction, 1)
-                    if end == None:
-                        moves.append('illegal')
-                    else:
-                        moves.append(start + end + promotion)
-
-    for m in policy_index:
-        if m not in moves:
-            raise ValueError('Missing move: {}'.format(m))
-
-    az_to_lc0 = np.zeros((80 * 8 * 8, len(policy_index)), dtype=np.float32)
-    indices = []
-    legal_moves = 0
-    for e, m in enumerate(moves):
-        if m == 'illegal':
-            indices.append(-1)
-            continue
-        legal_moves += 1
-        # Check for missing moves
-        if m not in policy_index:
-            raise ValueError('Missing move: {}'.format(m))
-        i = policy_index.index(m)
-        indices.append(i)
-        az_to_lc0[e][i] = 1
-
-    assert legal_moves == len(policy_index)
-    assert np.sum(az_to_lc0) == legal_moves
-    for e in range(80 * 8 * 8):
-        for i in range(len(policy_index)):
-            pass
-    if kind == 'matrix':
-        return az_to_lc0
-    elif kind == 'index':
-        return indices
 
 
 if __name__ == "__main__":
